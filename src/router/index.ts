@@ -52,6 +52,15 @@ const router = createRouter({
           },
         },
         {
+          path: 'files',
+          name: 'files',
+          component: () => import('@/views/FileUploadView.vue'),
+          meta: {
+            title: '文件上传',
+            requiresAuth: true,
+          },
+        },
+        {
           path: 'profile',
           name: 'profile',
           component: () => import('@/views/ProfileView.vue'),

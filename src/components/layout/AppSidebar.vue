@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { HomeFilled, Reading, Tickets, User } from '@element-plus/icons-vue'
+import {
+  HomeFilled,
+  Reading,
+  Tickets,
+  UploadFilled,
+  User,
+} from '@element-plus/icons-vue'
 import AppLogo from '@/components/AppLogo.vue'
 import { useAuthStore } from '@/stores/auth'
 import { ROLE_LABELS } from '@/types/user'
@@ -49,6 +55,10 @@ const roleLabel = computed(() =>
       <el-menu-item index="/selections">
         <el-icon><Tickets /></el-icon>
         <template #title>选题管理</template>
+      </el-menu-item>
+      <el-menu-item index="/files">
+        <el-icon><UploadFilled /></el-icon>
+        <template #title>文件上传</template>
       </el-menu-item>
       <el-menu-item v-if="authStore.isAdmin" index="/users">
         <el-icon><User /></el-icon>
