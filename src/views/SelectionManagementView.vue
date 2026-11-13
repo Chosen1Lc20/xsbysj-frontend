@@ -4,14 +4,18 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Check,
   Clock,
+  Document,
   Refresh,
   Search,
   Tickets,
   View,
   Warning,
 } from '@element-plus/icons-vue'
+import { assignmentApi } from '@/api/assignment'
 import { selectionApi } from '@/api/selection'
+import AssignmentFormDialog from '@/components/assignment/AssignmentFormDialog.vue'
 import { useAuthStore } from '@/stores/auth'
+import type { AssignmentSelectionContext } from '@/types/assignment'
 import {
   SELECTION_STATUS_LABELS,
   SELECTION_STATUS_OPTIONS,
@@ -32,6 +36,9 @@ const reviewSelection = ref<SelectionInfo | null>(null)
 const reviewApproved = ref(true)
 const reviewComment = ref('')
 const reviewSubmitting = ref(false)
+const assignmentDialogVisible = ref(false)
+const assignmentSelection = ref<AssignmentSelectionContext>()
+const assignedSelectionIds = ref<Set<string>>(new Set())
 
 const query = reactive<SelectionQuery>({
   current: 1,
@@ -130,6 +137,33 @@ async function loadStats() {
   }
 }
 
+async function loadTeacherAssignments() {
+  if (!isTeacher.value) {
+    return
+  }
+  try {
+    const ids = new Set<string>()
+    let current = 1
+    let pages = 1
+    do {
+      const result = await assignmentApi.list({
+        current,
+        pageSize: 50,
+        sortField: 'updateTime',
+        sortOrder: 'descend',
+      })
+      result.records.forEach((assignment) => {
+        ids.add(String(assignment.selectionId))
+      })
+      pages = result.pages
+      current += 1
+    } while (current <= pages)
+    assignedSelectionIds.value = ids
+  } catch {
+    assignedSelectionIds.value = new Set()
+  }
+}
+
 function handleSearch() {
   query.current = 1
   loadSelections()
@@ -181,6 +215,21 @@ function openReview(selection: SelectionInfo) {
   reviewVisible.value = true
 }
 
+function hasAssignment(selection: SelectionInfo) {
+  return assignedSelectionIds.value.has(String(selection.id))
+}
+
+function openAssignmentForm(selection: SelectionInfo) {
+  assignmentSelection.value = {
+    id: selection.id,
+    topicTitle: selection.topicTitle,
+    studentName: selection.studentName,
+    studentNo: selection.studentNo,
+    studentDepartment: selection.studentDepartment,
+  }
+  assignmentDialogVisible.value = true
+}
+
 async function submitReview() {
   if (!reviewSelection.value) {
     return
@@ -209,7 +258,7 @@ async function submitReview() {
 }
 
 onMounted(async () => {
-  await Promise.all([loadSelections(), loadStats()])
+  await Promise.all([loadSelections(), loadStats(), loadTeacherAssignments()])
 })
 </script>
 
@@ -354,7 +403,7 @@ onMounted(async () => {
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="225" fixed="right">
           <template #default="{ row }">
             <div class="row-actions">
               <el-button link type="primary" :icon="View" @click="openDetail(row)">
@@ -376,6 +425,29 @@ onMounted(async () => {
               >
                 审核
               </el-button>
+              <el-button
+                v-if="
+                  isTeacher &&
+                  row.status === 'APPROVED' &&
+                  !hasAssignment(row)
+                "
+                link
+                type="primary"
+                :icon="Document"
+                @click="openAssignmentForm(row)"
+              >
+                创建任务书
+              </el-button>
+              <span
+                v-if="
+                  isTeacher &&
+                  row.status === 'APPROVED' &&
+                  hasAssignment(row)
+                "
+                class="assignment-created"
+              >
+                任务书已创建
+              </span>
             </div>
           </template>
         </el-table-column>
@@ -469,9 +541,38 @@ onMounted(async () => {
           >
             审核选题
           </el-button>
+          <el-button
+            v-if="
+              isTeacher &&
+              selectedSelection.status === 'APPROVED' &&
+              !hasAssignment(selectedSelection)
+            "
+            type="primary"
+            :icon="Document"
+            @click="openAssignmentForm(selectedSelection)"
+          >
+            创建任务书
+          </el-button>
+          <span
+            v-if="
+              isTeacher &&
+              selectedSelection.status === 'APPROVED' &&
+              hasAssignment(selectedSelection)
+            "
+            class="assignment-created"
+          >
+            任务书已创建
+          </span>
         </div>
       </template>
     </el-drawer>
+
+    <AssignmentFormDialog
+      v-model="assignmentDialogVisible"
+      mode="create"
+      :selection="assignmentSelection"
+      @saved="loadTeacherAssignments"
+    />
 
     <el-dialog
       v-model="reviewVisible"
@@ -859,6 +960,15 @@ onMounted(async () => {
 
 .row-actions :deep(.el-button) {
   font-size: 10.8px;
+}
+
+.assignment-created {
+  padding: 4px 7px;
+  border-radius: 6px;
+  color: #1b7f67;
+  background: #e8f7f2;
+  font-size: 9.6px;
+  white-space: nowrap;
 }
 
 .pagination-wrap {

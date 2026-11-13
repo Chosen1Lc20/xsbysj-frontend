@@ -100,7 +100,7 @@ p {
   font-weight: 500;
 }
 
-.el-button--primary:not(.is-plain):not(.is-link):not(.is-text) {
+.el-button--primary:not(.is-plain):not(.is-link):not(.is-text):not(.is-disabled) {
   border-color: var(--primary-color);
   background-color: var(--primary-color);
   box-shadow: 0 4px 10px rgb(37 107 201 / 13%);

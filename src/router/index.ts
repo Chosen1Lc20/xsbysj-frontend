@@ -52,6 +52,24 @@ const router = createRouter({
           },
         },
         {
+          path: 'assignments',
+          name: 'assignments',
+          component: () => import('@/views/AssignmentManagementView.vue'),
+          meta: {
+            title: '任务书管理',
+            requiresAuth: true,
+          },
+        },
+        {
+          path: 'documents',
+          name: 'documents',
+          component: () => import('@/views/DocumentManagementView.vue'),
+          meta: {
+            title: '过程文档',
+            requiresAuth: true,
+          },
+        },
+        {
           path: 'files',
           name: 'files',
           component: () => import('@/views/FileUploadView.vue'),
