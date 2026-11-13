@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import {
+  Calendar,
   Document,
   Files,
   HomeFilled,
@@ -65,6 +66,10 @@ const roleLabel = computed(() =>
       <el-menu-item index="/documents">
         <el-icon><Files /></el-icon>
         <template #title>过程文档</template>
+      </el-menu-item>
+      <el-menu-item index="/defenses">
+        <el-icon><Calendar /></el-icon>
+        <template #title>答辩分组</template>
       </el-menu-item>
       <el-menu-item index="/files">
         <el-icon><UploadFilled /></el-icon>

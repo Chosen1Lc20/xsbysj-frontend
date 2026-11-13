@@ -70,6 +70,15 @@ const router = createRouter({
           },
         },
         {
+          path: 'defenses',
+          name: 'defenses',
+          component: () => import('@/views/DefenseManagementView.vue'),
+          meta: {
+            title: '答辩分组',
+            requiresAuth: true,
+          },
+        },
+        {
           path: 'files',
           name: 'files',
           component: () => import('@/views/FileUploadView.vue'),
